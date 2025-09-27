@@ -12,7 +12,8 @@ import {
   Calendar,
   TrendingUp,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
 
 interface PayrollRun {
