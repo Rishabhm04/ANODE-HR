@@ -13,7 +13,12 @@ import {
   X,
   Search,
   Bell,
-  User
+  User,
+  CheckCircle,
+  Folder,
+  ChevronRight,
+  Home,
+  UserCheck
 } from 'lucide-react'
 
 interface LayoutProps {
@@ -21,14 +26,17 @@ interface LayoutProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Employees', href: '/employees', icon: Users },
-  { name: 'Attendance', href: '/attendance', icon: Clock },
-  { name: 'Leave Management', href: '/leave', icon: Calendar },
-  { name: 'Payroll', href: '/payroll', icon: DollarSign },
-  { name: 'Performance', href: '/performance', icon: TrendingUp },
-  { name: 'Reports', href: '/reports', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, active: true },
+  { name: 'Attendance', href: '/attendance', icon: Clock, hasSubmenu: true },
+  { name: 'Leave', href: '/leave', icon: Calendar, hasSubmenu: true },
+  { name: 'Approval', href: '/approval', icon: CheckCircle, hasSubmenu: true },
+  { name: 'HR Reports', href: '/reports', icon: BarChart3, hasSubmenu: true },
+  { name: 'General Setup', href: '/settings', icon: Settings, hasSubmenu: true },
+  { name: 'Payroll', href: '/payroll', icon: DollarSign, hasSubmenu: true },
+  { name: 'Shift Setup', href: '/shift', icon: Settings, hasSubmenu: true },
+  { name: 'Employee Management', href: '/employees', icon: Users, hasSubmenu: true },
+  { name: 'Management', href: '/management', icon: Folder, hasSubmenu: true },
+  { name: 'Performance', href: '/performance', icon: TrendingUp, hasSubmenu: true },
 ]
 
 export default function Layout({ children }: LayoutProps) {
@@ -54,15 +62,18 @@ export default function Layout({ children }: LayoutProps) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium mb-1 ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium mb-1 ${
                     isActive
                       ? 'bg-primary-100 text-primary-700'
                       : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <div className="flex items-center">
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </div>
+                  {item.hasSubmenu && <ChevronRight className="h-4 w-4" />}
                 </Link>
               )
             })}
@@ -83,14 +94,17 @@ export default function Layout({ children }: LayoutProps) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm font-medium mb-1 ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium mb-1 ${
                     isActive
                       ? 'bg-primary-100 text-primary-700'
                       : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
                   }`}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <div className="flex items-center">
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </div>
+                  {item.hasSubmenu && <ChevronRight className="h-4 w-4" />}
                 </Link>
               )
             })}
