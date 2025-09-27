@@ -16,7 +16,8 @@ import {
   Save,
   CreditCard,
   Shield,
-  Briefcase
+  Briefcase,
+  FileText
 } from 'lucide-react'
 
 
@@ -181,10 +182,96 @@ const mockEmployeeData: EmployeeEnrollmentForm[] = [
 
 export default function TrainingManagement() {
   const [enrollments] = useState<TrainingEnrollment[]>(mockEnrollments)
+  const [employeeData, setEmployeeData] = useState<EmployeeEnrollmentForm[]>(mockEmployeeData)
   const [showEnrollmentModal, setShowEnrollmentModal] = useState(false)
   const [showEmployeeInfoModal, setShowEmployeeInfoModal] = useState(false)
+  const [showOfferLetterModal, setShowOfferLetterModal] = useState(false)
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeEnrollmentForm | null>(null)
   const [activeTab, setActiveTab] = useState('verified')
+  
+  // Offer Letter Form State
+  const [offerLetterForm, setOfferLetterForm] = useState({
+    employeeName: '',
+    dateOfJoining: '',
+    duration: '',
+    salary: '',
+    position: 'Software Developer',
+    letterDate: new Date().toISOString().split('T')[0]
+  })
+
+  // Position-specific content
+  const positionContent = {
+    'Data Analyst': {
+      description: 'data analysis and business intelligence',
+      benefits: [
+        'Hands-on Projects: Work on real data analysis projects',
+        'Mentorship: Guidance from experienced data scientists',
+        'Workshops: Access to training on latest analytics tools',
+        'Networking: Build connections in the data science community',
+        'Career Growth: Opportunities for advancement in analytics'
+      ]
+    },
+    'Digital Marketing Person': {
+      description: 'digital marketing and brand promotion',
+      benefits: [
+        'Hands-on Projects: Work on live digital marketing campaigns',
+        'Mentorship: Guidance from experienced marketing professionals',
+        'Workshops: Access to training on latest marketing tools',
+        'Networking: Build connections in the marketing industry',
+        'Career Growth: Opportunities for advancement in marketing'
+      ]
+    },
+    'Accountant': {
+      description: 'financial management and accounting',
+      benefits: [
+        'Hands-on Projects: Work on real financial projects',
+        'Mentorship: Guidance from experienced accountants',
+        'Workshops: Access to training on latest accounting software',
+        'Networking: Build connections in the finance industry',
+        'Career Growth: Opportunities for advancement in finance'
+      ]
+    },
+    'Software Developer': {
+      description: 'software development and programming',
+      benefits: [
+        'Hands-on Projects: Work on live software development projects',
+        'Mentorship: Guidance from experienced developers',
+        'Workshops: Access to training on latest development tools',
+        'Networking: Build connections in the tech industry',
+        'Career Growth: Opportunities for advancement in development'
+      ]
+    },
+    'Software Developer Intern': {
+      description: 'software development and programming',
+      benefits: [
+        'Hands-on Projects: Work on live software development projects',
+        'Mentorship: Guidance from experienced developers',
+        'Workshops: Access to training on latest development tools',
+        'Networking: Build connections in the tech industry',
+        'Completion Certificate: Boost your resume with a certificate'
+      ]
+    },
+    'Telecaller': {
+      description: 'customer service and sales support',
+      benefits: [
+        'Hands-on Projects: Work on real customer interaction projects',
+        'Mentorship: Guidance from experienced sales professionals',
+        'Workshops: Access to training on communication skills',
+        'Networking: Build connections in the sales industry',
+        'Career Growth: Opportunities for advancement in sales'
+      ]
+    },
+    'HR': {
+      description: 'human resources and people management',
+      benefits: [
+        'Hands-on Projects: Work on real HR management projects',
+        'Mentorship: Guidance from experienced HR professionals',
+        'Workshops: Access to training on latest HR tools',
+        'Networking: Build connections in the HR industry',
+        'Career Growth: Opportunities for advancement in human resources'
+      ]
+    }
+  }
   
   // Employee Enrollment Form State
   const [enrollmentForm, setEnrollmentForm] = useState<EmployeeEnrollmentForm>({
@@ -221,9 +308,21 @@ export default function TrainingManagement() {
   }
 
   const handleEnrollmentSubmit = () => {
-    // Here you would typically save the enrollment data
+    // Add new employee to the employee data
+    setEmployeeData(prev => [...prev, { ...enrollmentForm }])
+    
+    // Switch to the appropriate tab based on verification status
+    if (enrollmentForm.verificationStatus === 'verified') {
+      setActiveTab('verified')
+    } else if (enrollmentForm.verificationStatus === 'not-verified') {
+      setActiveTab('not-verified')
+    } else if (enrollmentForm.verificationStatus === 'rejected') {
+      setActiveTab('rejected')
+    }
+    
     console.log('Enrollment Form Data:', enrollmentForm)
     setShowEnrollmentModal(false)
+    
     // Reset form
     setEnrollmentForm({
       name: '',
@@ -252,7 +351,7 @@ export default function TrainingManagement() {
   }
 
   const handleViewEmployeeInfo = (employeeName: string) => {
-    const employee = mockEmployeeData.find(emp => emp.name === employeeName)
+    const employee = employeeData.find(emp => emp.name === employeeName)
     if (employee) {
       setSelectedEmployee(employee)
       setShowEmployeeInfoModal(true)
@@ -260,10 +359,244 @@ export default function TrainingManagement() {
   }
 
   const handleEditEmployee = (employeeName: string) => {
-    const employee = mockEmployeeData.find(emp => emp.name === employeeName)
+    const employee = employeeData.find(emp => emp.name === employeeName)
     if (employee) {
       setEnrollmentForm(employee)
       setShowEnrollmentModal(true)
+    }
+  }
+
+  const handleOfferLetterFormChange = (field: string, value: string) => {
+    setOfferLetterForm(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleDownloadPDF = () => {
+    // Create a new window with the offer letter content
+    const printWindow = window.open('', '_blank', 'width=800,height=600')
+    if (printWindow) {
+      const benefits = positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits || [
+        'Hands-on Projects: Work on live software development projects',
+        'Mentorship: Guidance from experienced developers',
+        'Workshops: Access to training on latest development tools',
+        'Networking: Build industry connections',
+        'Career Growth: Opportunities for advancement'
+      ]
+
+      const benefitsHTML = benefits.map(benefit => {
+        const [title, description] = benefit.split(':')
+        return `<li><strong>${title}:</strong> ${description}</li>`
+      }).join('')
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Offer Letter - ${offerLetterForm.employeeName || 'Employee'}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+              line-height: 1.6;
+              color: #333;
+            }
+            .header { 
+              display: flex; 
+              justify-content: space-between; 
+              align-items: start; 
+              margin-bottom: 30px; 
+            }
+            .company-name { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #2563eb; 
+              margin-bottom: 5px; 
+            }
+            .tagline { 
+              font-size: 12px; 
+              color: #666; 
+            }
+            .date-section { 
+              text-align: right; 
+            }
+            .logo { 
+              width: 60px; 
+              height: 60px; 
+              background: #dbeafe; 
+              border-radius: 50%; 
+              margin-bottom: 10px; 
+              display: inline-block;
+            }
+            .date { 
+              font-size: 12px; 
+              font-weight: 500; 
+            }
+            .salutation { 
+              font-size: 16px; 
+              font-weight: 600; 
+              margin-bottom: 20px; 
+            }
+            .content { 
+              font-size: 12px; 
+              line-height: 1.6; 
+              margin-bottom: 20px; 
+            }
+            .content p { 
+              margin-bottom: 15px; 
+            }
+            .info-box { 
+              background: #f0f9ff; 
+              padding: 15px; 
+              border-radius: 8px; 
+              margin: 20px 0; 
+            }
+            .benefits-box { 
+              background: #f0fdf4; 
+              padding: 15px; 
+              border-radius: 8px; 
+              margin: 20px 0; 
+            }
+            .info-title { 
+              font-weight: 600; 
+              color: #1e40af; 
+              margin-bottom: 10px; 
+            }
+            .benefits-title { 
+              font-weight: 600; 
+              color: #166534; 
+              margin-bottom: 10px; 
+            }
+            .info-list, .benefits-list { 
+              margin: 0; 
+              padding-left: 0; 
+              list-style: none;
+            }
+            .info-list li, .benefits-list li { 
+              margin-bottom: 5px; 
+              font-size: 12px; 
+            }
+            .signature { 
+              margin-top: 30px; 
+            }
+            .signature-text { 
+              margin-bottom: 15px; 
+            }
+            .signature-section { 
+              display: flex; 
+              align-items: center; 
+              gap: 15px; 
+            }
+            .signature-stamp { 
+              width: 80px; 
+              height: 80px; 
+              background: #dbeafe; 
+              border-radius: 50%; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              font-size: 10px; 
+              font-weight: 600; 
+              color: #2563eb; 
+              text-align: center; 
+            }
+            .footer { 
+              margin-top: 30px; 
+              padding-top: 15px; 
+              border-top: 1px solid #e5e7eb; 
+              font-size: 10px; 
+              color: #6b7280; 
+            }
+            .footer-grid { 
+              display: grid; 
+              grid-template-columns: 1fr 1fr; 
+              gap: 20px; 
+            }
+            @media print { 
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="company-name">ANOCAB</div>
+              <div class="tagline">A Positive Connection....</div>
+            </div>
+            <div class="date-section">
+              <div class="logo"></div>
+              <div class="date">DATE: ${new Date(offerLetterForm.letterDate).toLocaleDateString('en-GB')}</div>
+            </div>
+          </div>
+
+          <div class="salutation">Dear <strong>${offerLetterForm.employeeName || 'EMPLOYEE NAME'}</strong></div>
+
+          <div class="content">
+            <p>We are pleased to extend an offer for the <strong>${offerLetterForm.position}</strong> position at <strong>Anode Electric PVT LTD.</strong> We were impressed by your skills and enthusiasm for ${positionContent[offerLetterForm.position as keyof typeof positionContent]?.description || 'your field of expertise'} and are excited about the possibility of you joining our team.</p>
+            
+            <p>The duration of the employment will be of <strong>${offerLetterForm.duration || 'Permanent'}</strong>, starting from <strong>${offerLetterForm.dateOfJoining ? new Date(offerLetterForm.dateOfJoining).toLocaleDateString('en-GB') : '1st January 2025'}</strong>.</p>
+            
+            <p>This is an educational opportunity focused on learning and developing new skills and gaining hands-on knowledge. We expect you to perform all your tasks/projects assigned to you to the best of your ability and follow any lawful and reasonable instructions.</p>
+
+            <div class="info-box">
+              <div class="info-title">Key Information:</div>
+              <ul class="info-list">
+                <li><strong>Position:</strong> ${offerLetterForm.position}</li>
+                <li><strong>Date of joining:</strong> ${offerLetterForm.dateOfJoining ? new Date(offerLetterForm.dateOfJoining).toLocaleDateString('en-GB') : '1st Jan. 2025'}</li>
+                <li><strong>Duration:</strong> ${offerLetterForm.duration || 'Permanent'}</li>
+                <li><strong>Salary:</strong> ${offerLetterForm.salary || '₹50,000 per month'}</li>
+              </ul>
+            </div>
+
+            <div class="benefits-box">
+              <div class="benefits-title">Benefits:</div>
+              <ul class="benefits-list">
+                ${benefitsHTML}
+              </ul>
+            </div>
+
+            <p>We are excited to have you join our team and look forward to your contributions to Anode Electric PVT LTD.</p>
+          </div>
+
+          <div class="signature">
+            <div class="signature-text">Sincerely,</div>
+            <div class="signature-section">
+              <div class="signature-stamp">ANODE ELECTRIC PVT. LTD.</div>
+              <div>
+                <div style="font-weight: 600;">Anode Electric PVT LTD</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div class="footer-grid">
+              <div>
+                <p><strong>Address:</strong> Plot no 10-15, IT Park, Bargi hills, Jabalpur-482003 M.P.</p>
+                <p><strong>Website:</strong> www.anocab.com</p>
+              </div>
+              <div>
+                <p><strong>CIN:</strong> U31103MP2015PTC034653</p>
+                <p><strong>Tel:</strong> +91 18002700075</p>
+                <p><strong>E-mail:</strong> info@anocab.com</p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `)
+      
+      printWindow.document.close()
+      
+      // Wait for content to load then trigger print
+      setTimeout(() => {
+        printWindow.focus()
+        printWindow.print()
+      }, 1000)
+    } else {
+      alert('Please allow popups for this site to download the PDF')
     }
   }
 
@@ -278,17 +611,17 @@ export default function TrainingManagement() {
         <div className="flex space-x-3">
           <button 
             onClick={() => setShowEnrollmentModal(true)}
-            className="btn btn-outline btn-md"
+            className="btn btn-primary btn-md"
           >
             <Users className="mr-2 h-4 w-4" />
             Enroll Employee
           </button>
           <button 
-            onClick={() => setShowEnrollmentModal(true)}
-            className="btn btn-primary btn-md"
+            onClick={() => setShowOfferLetterModal(true)}
+            className="btn btn-outline btn-md"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            New Program
+            <FileText className="mr-2 h-4 w-4" />
+            Generate Offer Letter
           </button>
         </div>
       </div>
@@ -404,30 +737,30 @@ export default function TrainingManagement() {
                     </tr>
                   </thead>
                   <tbody className="table-body">
-                    {enrollments.filter(emp => emp.status === 'completed').map((enrollment) => (
-                      <tr key={enrollment.id} className="table-row">
+                    {employeeData.filter(emp => emp.verificationStatus === 'verified').map((employee, index) => (
+                      <tr key={index} className="table-row">
                         <td className="table-cell">
                           <div className="flex items-center space-x-3">
                             <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
                               <CheckCircle className="h-4 w-4 text-green-600" />
                             </div>
                             <div>
-                              <p className="font-medium text-secondary-900">{enrollment.employeeName}</p>
-                              <p className="text-sm text-secondary-500">ID: {enrollment.employeeId}</p>
+                              <p className="font-medium text-secondary-900">{employee.name}</p>
+                              <p className="text-sm text-secondary-500">ID: EMP{String(index + 1).padStart(3, '0')}</p>
                             </div>
                           </div>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm font-medium">HR</span>
+                          <span className="text-sm font-medium">{employee.department}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm">Manager</span>
+                          <span className="text-sm">{employee.designation}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm">{new Date(enrollment.enrollmentDate).toLocaleDateString()}</span>
+                          <span className="text-sm">{new Date(employee.dateOfAppointment).toLocaleDateString()}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm font-medium">₹55,000</span>
+                          <span className="text-sm font-medium">₹{employee.payrollAmount.toLocaleString()}</span>
                         </td>
                         <td className="table-cell">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -437,14 +770,14 @@ export default function TrainingManagement() {
                         <td className="table-cell">
                           <div className="flex items-center space-x-2">
                             <button 
-                              onClick={() => handleViewEmployeeInfo(enrollment.employeeName)}
+                              onClick={() => handleViewEmployeeInfo(employee.name)}
                               className="p-1 text-secondary-400 hover:text-primary-600"
                               title="View Employee Info"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
                             <button 
-                              onClick={() => handleEditEmployee(enrollment.employeeName)}
+                              onClick={() => handleEditEmployee(employee.name)}
                               className="p-1 text-secondary-400 hover:text-primary-600"
                               title="Edit Employee"
                             >
@@ -505,30 +838,30 @@ export default function TrainingManagement() {
                     </tr>
                   </thead>
                   <tbody className="table-body">
-                    {enrollments.filter(emp => emp.status === 'enrolled').map((enrollment) => (
-                      <tr key={enrollment.id} className="table-row">
+                    {employeeData.filter(emp => emp.verificationStatus === 'not-verified').map((employee, index) => (
+                      <tr key={index} className="table-row">
                         <td className="table-cell">
                           <div className="flex items-center space-x-3">
                             <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
                               <AlertCircle className="h-4 w-4 text-yellow-600" />
                             </div>
                             <div>
-                              <p className="font-medium text-secondary-900">{enrollment.employeeName}</p>
-                              <p className="text-sm text-secondary-500">ID: {enrollment.employeeId}</p>
+                              <p className="font-medium text-secondary-900">{employee.name}</p>
+                              <p className="text-sm text-secondary-500">ID: EMP{String(index + 1).padStart(3, '0')}</p>
                             </div>
                           </div>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm font-medium">IT</span>
+                          <span className="text-sm font-medium">{employee.department}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm">Developer</span>
+                          <span className="text-sm">{employee.designation}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm">{new Date(enrollment.enrollmentDate).toLocaleDateString()}</span>
+                          <span className="text-sm">{new Date(employee.dateOfAppointment).toLocaleDateString()}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm font-medium">₹42,000</span>
+                          <span className="text-sm font-medium">₹{employee.payrollAmount.toLocaleString()}</span>
                         </td>
                         <td className="table-cell">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -538,14 +871,14 @@ export default function TrainingManagement() {
                         <td className="table-cell">
                           <div className="flex items-center space-x-2">
                             <button 
-                              onClick={() => handleViewEmployeeInfo(enrollment.employeeName)}
+                              onClick={() => handleViewEmployeeInfo(employee.name)}
                               className="p-1 text-secondary-400 hover:text-primary-600"
                               title="View Employee Info"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
                             <button 
-                              onClick={() => handleEditEmployee(enrollment.employeeName)}
+                              onClick={() => handleEditEmployee(employee.name)}
                               className="p-1 text-secondary-400 hover:text-primary-600"
                               title="Edit Employee"
                             >
@@ -606,30 +939,30 @@ export default function TrainingManagement() {
                     </tr>
                   </thead>
                   <tbody className="table-body">
-                    {enrollments.filter(emp => emp.status === 'dropped').map((enrollment) => (
-                      <tr key={enrollment.id} className="table-row">
+                    {employeeData.filter(emp => emp.verificationStatus === 'rejected').map((employee, index) => (
+                      <tr key={index} className="table-row">
                         <td className="table-cell">
                           <div className="flex items-center space-x-3">
                             <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
                               <X className="h-4 w-4 text-red-600" />
                             </div>
                             <div>
-                              <p className="font-medium text-secondary-900">{enrollment.employeeName}</p>
-                              <p className="text-sm text-secondary-500">ID: {enrollment.employeeId}</p>
+                              <p className="font-medium text-secondary-900">{employee.name}</p>
+                              <p className="text-sm text-secondary-500">ID: EMP{String(index + 1).padStart(3, '0')}</p>
                             </div>
                           </div>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm font-medium">Finance</span>
+                          <span className="text-sm font-medium">{employee.department}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm">Analyst</span>
+                          <span className="text-sm">{employee.designation}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm">{new Date(enrollment.enrollmentDate).toLocaleDateString()}</span>
+                          <span className="text-sm">{new Date(employee.dateOfAppointment).toLocaleDateString()}</span>
                         </td>
                         <td className="table-cell">
-                          <span className="text-sm font-medium">₹38,000</span>
+                          <span className="text-sm font-medium">₹{employee.payrollAmount.toLocaleString()}</span>
                         </td>
                         <td className="table-cell">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -639,14 +972,14 @@ export default function TrainingManagement() {
                         <td className="table-cell">
                           <div className="flex items-center space-x-2">
                             <button 
-                              onClick={() => handleViewEmployeeInfo(enrollment.employeeName)}
+                              onClick={() => handleViewEmployeeInfo(employee.name)}
                               className="p-1 text-secondary-400 hover:text-primary-600"
                               title="View Employee Info"
                             >
                               <Eye className="h-4 w-4" />
                             </button>
                             <button 
-                              onClick={() => handleEditEmployee(enrollment.employeeName)}
+                              onClick={() => handleEditEmployee(employee.name)}
                               className="p-1 text-secondary-400 hover:text-primary-600"
                               title="Edit Employee"
                             >
@@ -1185,6 +1518,215 @@ export default function TrainingManagement() {
                     className="btn btn-outline btn-md"
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Offer Letter Generation Modal */}
+      {showOfferLetterModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setShowOfferLetterModal(false)} />
+            <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-secondary-900">Generate Offer Letter</h3>
+                  <button 
+                    onClick={() => setShowOfferLetterModal(false)}
+                    className="text-secondary-400 hover:text-secondary-600"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Offer Letter Form */}
+                  <div className="bg-secondary-50 rounded-lg p-6">
+                    <h4 className="font-medium text-secondary-900 mb-4">Offer Letter Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">Employee Name *</label>
+                        <input
+                          type="text"
+                          value={offerLetterForm.employeeName}
+                          onChange={(e) => handleOfferLetterFormChange('employeeName', e.target.value)}
+                          className="input w-full"
+                          placeholder="Enter employee name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">Date of Joining *</label>
+                        <input
+                          type="date"
+                          value={offerLetterForm.dateOfJoining}
+                          onChange={(e) => handleOfferLetterFormChange('dateOfJoining', e.target.value)}
+                          className="input w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">Duration *</label>
+                        <input
+                          type="text"
+                          value={offerLetterForm.duration}
+                          onChange={(e) => handleOfferLetterFormChange('duration', e.target.value)}
+                          className="input w-full"
+                          placeholder="e.g., 6 Months, Permanent, 1 Year"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">Salary *</label>
+                        <input
+                          type="text"
+                          value={offerLetterForm.salary}
+                          onChange={(e) => handleOfferLetterFormChange('salary', e.target.value)}
+                          className="input w-full"
+                          placeholder="e.g., ₹50,000 per month"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">Letter Date *</label>
+                        <input
+                          type="date"
+                          value={offerLetterForm.letterDate}
+                          onChange={(e) => handleOfferLetterFormChange('letterDate', e.target.value)}
+                          className="input w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-secondary-700 mb-2">Position *</label>
+                        <select
+                          value={offerLetterForm.position}
+                          onChange={(e) => handleOfferLetterFormChange('position', e.target.value)}
+                          className="input w-full"
+                        >
+                          <option value="Software Developer">Software Developer</option>
+                          <option value="Data Analyst">Data Analyst</option>
+                          <option value="Digital Marketing Person">Digital Marketing Person</option>
+                          <option value="Accountant">Accountant</option>
+                          <option value="Software Developer Intern">Software Developer Intern</option>
+                          <option value="Telecaller">Telecaller</option>
+                          <option value="HR">HR</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Offer Letter Preview */}
+                  <div className="bg-white border border-secondary-200 rounded-lg p-8">
+                    <div className="max-w-4xl mx-auto">
+                      {/* Header */}
+                      <div className="flex justify-between items-start mb-8">
+                        <div>
+                          <h1 className="text-3xl font-bold text-blue-600 mb-2">ANOCAB</h1>
+                          <p className="text-sm text-secondary-600">A Positive Connection....</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="w-16 h-16 bg-blue-100 rounded-full mb-2"></div>
+                          <p className="text-sm font-medium">DATE: {new Date(offerLetterForm.letterDate).toLocaleDateString('en-GB')}</p>
+                        </div>
+                      </div>
+
+                      {/* Salutation */}
+                      <div className="mb-6">
+                        <p className="text-lg font-semibold">Dear <span className="text-blue-600">{offerLetterForm.employeeName || 'EMPLOYEE NAME'}</span></p>
+                      </div>
+
+                      {/* Main Content */}
+                      <div className="space-y-4 text-sm leading-relaxed">
+                        <p>
+                          We are pleased to extend an offer for the <strong>{offerLetterForm.position}</strong> position at <strong>Anode Electric PVT LTD.</strong> 
+                          We were impressed by your skills and enthusiasm for {positionContent[offerLetterForm.position as keyof typeof positionContent]?.description || 'your field of expertise'} and are excited about the possibility of you joining our team.
+                        </p>
+                        
+                        <p>
+                          The duration of the employment will be of <strong>{offerLetterForm.duration || 'Permanent'}</strong>, starting from <strong>{offerLetterForm.dateOfJoining ? new Date(offerLetterForm.dateOfJoining).toLocaleDateString('en-GB') : '1st January 2025'}</strong>.
+                        </p>
+                        
+                        <p>
+                          This is an educational opportunity focused on learning and developing new skills and gaining hands-on knowledge. 
+                          We expect you to perform all your tasks/projects assigned to you to the best of your ability and follow any lawful and reasonable instructions.
+                        </p>
+
+                        {/* Key Information */}
+                        <div className="bg-blue-50 p-4 rounded-lg my-6">
+                          <h4 className="font-semibold mb-3 text-blue-800">Key Information:</h4>
+                          <ul className="space-y-1 text-sm">
+                            <li><strong>Position:</strong> {offerLetterForm.position}</li>
+                            <li><strong>Date of joining:</strong> {offerLetterForm.dateOfJoining ? new Date(offerLetterForm.dateOfJoining).toLocaleDateString('en-GB') : '1st Jan. 2025'}</li>
+                            <li><strong>Duration:</strong> {offerLetterForm.duration || 'Permanent'}</li>
+                            <li><strong>Salary:</strong> {offerLetterForm.salary || '₹50,000 per month'}</li>
+                          </ul>
+                        </div>
+
+                        {/* Benefits */}
+                        <div className="bg-green-50 p-4 rounded-lg my-6">
+                          <h4 className="font-semibold mb-3 text-green-800">Benefits:</h4>
+                          <ul className="space-y-1 text-sm">
+                            {positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits.map((benefit, index) => (
+                              <li key={index}><strong>{benefit.split(':')[0]}:</strong> {benefit.split(':')[1]}</li>
+                            )) || [
+                              <li key="1"><strong>Hands-on Projects:</strong> Work on live software development projects</li>,
+                              <li key="2"><strong>Mentorship:</strong> Guidance from experienced developers</li>,
+                              <li key="3"><strong>Workshops:</strong> Access to training on latest development tools</li>,
+                              <li key="4"><strong>Networking:</strong> Build industry connections</li>,
+                              <li key="5"><strong>Career Growth:</strong> Opportunities for advancement</li>
+                            ]}
+                          </ul>
+                        </div>
+
+                        <p>
+                          We are excited to have you join our team and look forward to your contributions to Anode Electric PVT LTD.
+                        </p>
+                      </div>
+
+                      {/* Signature */}
+                      <div className="mt-8">
+                        <p className="mb-4">Sincerely,</p>
+                        <div className="flex items-center space-x-4">
+                          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-semibold text-blue-600">ANODE ELECTRIC PVT. LTD.</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold">Anode Electric PVT LTD</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="mt-8 pt-4 border-t border-secondary-200 text-xs text-secondary-600">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p><strong>Address:</strong> Plot no 10-15, IT Park, Bargi hills, Jabalpur-482003 M.P.</p>
+                            <p><strong>Website:</strong> www.anocab.com</p>
+                          </div>
+                          <div>
+                            <p><strong>CIN:</strong> U31103MP2015PTC034653</p>
+                            <p><strong>Tel:</strong> +91 18002700075</p>
+                            <p><strong>E-mail:</strong> info@anocab.com</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-3 pt-6 border-t border-secondary-200">
+                  <button 
+                    onClick={() => setShowOfferLetterModal(false)}
+                    className="btn btn-outline btn-md"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleDownloadPDF}
+                    className="btn btn-primary btn-md"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
                   </button>
                 </div>
               </div>
