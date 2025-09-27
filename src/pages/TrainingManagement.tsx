@@ -6,7 +6,6 @@ import {
   Download, 
   Eye, 
   Edit, 
-  Plus,
   CheckCircle,
   AlertCircle,
   User,
@@ -17,22 +16,11 @@ import {
   CreditCard,
   Shield,
   Briefcase,
-  FileText
+  FileText,
+  Edit3
 } from 'lucide-react'
 
 
-interface TrainingEnrollment {
-  id: string
-  employeeId: string
-  employeeName: string
-  programId: string
-  programTitle: string
-  enrollmentDate: string
-  status: 'enrolled' | 'in-progress' | 'completed' | 'dropped'
-  completionDate?: string
-  score?: number
-  certificate?: string
-}
 
 
 interface EmployeeEnrollmentForm {
@@ -67,42 +55,13 @@ interface EmployeeEnrollmentForm {
   
   // Employee Status
   employeeStatus: 'active' | 'inactive' | 'terminated' | 'on-leave'
+  
+  // Additional Properties
+  employeeId: string
+  verificationDate: string
 }
 
 
-const mockEnrollments: TrainingEnrollment[] = [
-  {
-    id: '1',
-    employeeId: 'EMP001',
-    employeeName: 'John Smith',
-    programId: '1',
-    programTitle: 'Leadership Development Program',
-    enrollmentDate: '2024-01-10',
-    status: 'in-progress',
-    score: 85
-  },
-  {
-    id: '2',
-    employeeId: 'EMP002',
-    employeeName: 'Sarah Johnson',
-    programId: '2',
-    programTitle: 'Digital Marketing Fundamentals',
-    enrollmentDate: '2024-01-25',
-    status: 'completed',
-    completionDate: '2024-02-28',
-    score: 92,
-    certificate: 'cert_001.pdf'
-  },
-  {
-    id: '3',
-    employeeId: 'EMP003',
-    employeeName: 'Mike Chen',
-    programId: '1',
-    programTitle: 'Leadership Development Program',
-    enrollmentDate: '2024-01-12',
-    status: 'enrolled'
-  }
-]
 
 const mockEmployeeData: EmployeeEnrollmentForm[] = [
   {
@@ -127,7 +86,9 @@ const mockEmployeeData: EmployeeEnrollmentForm[] = [
     bankName: 'State Bank of India',
     ifscCode: 'SBIN0001234',
     accountHolderName: 'John Smith',
-    employeeStatus: 'active'
+    employeeStatus: 'active',
+    employeeId: 'EMP001',
+    verificationDate: '2020-03-20'
   },
   {
     name: 'Sarah Johnson',
@@ -151,7 +112,9 @@ const mockEmployeeData: EmployeeEnrollmentForm[] = [
     bankName: 'HDFC Bank',
     ifscCode: 'HDFC0001234',
     accountHolderName: 'Sarah Johnson',
-    employeeStatus: 'active'
+    employeeStatus: 'active',
+    employeeId: 'EMP002',
+    verificationDate: '2019-07-15'
   },
   {
     name: 'Mike Chen',
@@ -175,13 +138,14 @@ const mockEmployeeData: EmployeeEnrollmentForm[] = [
     bankName: 'ICICI Bank',
     ifscCode: 'ICIC0001234',
     accountHolderName: 'Mike Chen',
-    employeeStatus: 'active'
+    employeeStatus: 'active',
+    employeeId: 'EMP003',
+    verificationDate: '2021-11-10'
   }
 ]
 
 
 export default function TrainingManagement() {
-  const [enrollments] = useState<TrainingEnrollment[]>(mockEnrollments)
   const [employeeData, setEmployeeData] = useState<EmployeeEnrollmentForm[]>(mockEmployeeData)
   const [showEnrollmentModal, setShowEnrollmentModal] = useState(false)
   const [showEmployeeInfoModal, setShowEmployeeInfoModal] = useState(false)
@@ -196,8 +160,17 @@ export default function TrainingManagement() {
     duration: '',
     salary: '',
     position: 'Software Developer',
-    letterDate: new Date().toISOString().split('T')[0]
+    letterDate: new Date().toISOString().split('T')[0],
+    customBenefits: ''
   })
+
+  // Benefits editing state
+  const [isEditingBenefits, setIsEditingBenefits] = useState(false)
+  const [editingBenefits, setEditingBenefits] = useState('')
+
+  // Filter and search state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedDepartment, setSelectedDepartment] = useState('all')
 
   // Position-specific content
   const positionContent = {
@@ -296,7 +269,9 @@ export default function TrainingManagement() {
     bankName: '',
     ifscCode: '',
     accountHolderName: '',
-    employeeStatus: 'active'
+    employeeStatus: 'active',
+    employeeId: '',
+    verificationDate: ''
   })
 
 
@@ -308,8 +283,16 @@ export default function TrainingManagement() {
   }
 
   const handleEnrollmentSubmit = () => {
+    // Generate employee ID and verification date
+    const employeeId = `EMP${String(employeeData.length + 1).padStart(3, '0')}`
+    const verificationDate = new Date().toISOString().split('T')[0]
+    
     // Add new employee to the employee data
-    setEmployeeData(prev => [...prev, { ...enrollmentForm }])
+    setEmployeeData(prev => [...prev, { 
+      ...enrollmentForm, 
+      employeeId, 
+      verificationDate 
+    }])
     
     // Switch to the appropriate tab based on verification status
     if (enrollmentForm.verificationStatus === 'verified') {
@@ -346,7 +329,9 @@ export default function TrainingManagement() {
       bankName: '',
       ifscCode: '',
       accountHolderName: '',
-      employeeStatus: 'active'
+      employeeStatus: 'active',
+      employeeId: '',
+      verificationDate: ''
     })
   }
 
@@ -373,20 +358,115 @@ export default function TrainingManagement() {
     }))
   }
 
-  const handleDownloadPDF = () => {
-    // Create a new window with the offer letter content
-    const printWindow = window.open('', '_blank', 'width=800,height=600')
-    if (printWindow) {
-      const benefits = positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits || [
+  const handleEditBenefits = () => {
+    // Get current benefits as text
+    const currentBenefits = offerLetterForm.customBenefits || 
+      (positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits || [
         'Hands-on Projects: Work on live software development projects',
         'Mentorship: Guidance from experienced developers',
         'Workshops: Access to training on latest development tools',
         'Networking: Build industry connections',
         'Career Growth: Opportunities for advancement'
-      ]
+      ]).join('\n')
+    
+    setEditingBenefits(currentBenefits)
+    setIsEditingBenefits(true)
+  }
+
+  const handleSaveBenefits = () => {
+    setOfferLetterForm(prev => ({
+      ...prev,
+      customBenefits: editingBenefits
+    }))
+    setIsEditingBenefits(false)
+  }
+
+  const handleCancelEditBenefits = () => {
+    setIsEditingBenefits(false)
+    setEditingBenefits('')
+  }
+
+  // Get unique departments from employee data
+  const getUniqueDepartments = () => {
+    const departments = employeeData.map(emp => emp.department).filter((dept, index, arr) => arr.indexOf(dept) === index)
+    return departments.sort()
+  }
+
+  // Filter employees based on search term and department
+  const getFilteredEmployees = () => {
+    let filtered = employeeData.filter(emp => {
+      const matchesTab = 
+        (activeTab === 'verified' && emp.verificationStatus === 'verified') ||
+        (activeTab === 'not-verified' && emp.verificationStatus === 'not-verified') ||
+        (activeTab === 'rejected' && emp.verificationStatus === 'rejected')
+      
+      const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+      
+      const matchesDepartment = selectedDepartment === 'all' || emp.department === selectedDepartment
+      
+      return matchesTab && matchesSearch && matchesDepartment
+    })
+    
+    return filtered
+  }
+
+  // Export functionality
+  const handleExport = () => {
+    const filteredEmployees = getFilteredEmployees()
+    
+    // Create CSV content
+    const headers = ['Employee ID', 'Name', 'Department', 'Designation', 'Verification Date', 'Payroll Amount', 'Status']
+    const csvContent = [
+      headers.join(','),
+      ...filteredEmployees.map(emp => [
+        emp.employeeId,
+        `"${emp.name}"`,
+        emp.department,
+        emp.designation,
+        emp.verificationDate,
+        emp.payrollAmount,
+        emp.verificationStatus
+      ].join(','))
+    ].join('\n')
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `${activeTab}-employees-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleDownloadPDF = () => {
+    // Create a new window with the offer letter content
+    const printWindow = window.open('', '_blank', 'width=800,height=600')
+    if (printWindow) {
+      // Use custom benefits if provided, otherwise use position-specific benefits
+      let benefits = []
+      if (offerLetterForm.customBenefits) {
+        benefits = offerLetterForm.customBenefits.split('\n')
+          .filter(benefit => benefit.trim())
+          .map(benefit => {
+            const cleanBenefit = benefit.replace(/^[•\-\*]\s*/, '').trim()
+            return cleanBenefit
+          })
+      } else {
+        benefits = positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits || [
+          'Hands-on Projects: Work on live software development projects',
+          'Mentorship: Guidance from experienced developers',
+          'Workshops: Access to training on latest development tools',
+          'Networking: Build industry connections',
+          'Career Growth: Opportunities for advancement'
+        ]
+      }
 
       const benefitsHTML = benefits.map(benefit => {
-        const [title, description] = benefit.split(':')
+        const [title, description] = benefit.includes(':') ? benefit.split(':') : [benefit, '']
         return `<li><strong>${title}:</strong> ${description}</li>`
       }).join('')
 
@@ -677,7 +757,12 @@ export default function TrainingManagement() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id)
+                  // Reset filters when switching tabs
+                  setSearchTerm('')
+                  setSelectedDepartment('all')
+                }}
                 className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
                     ? 'border-primary-500 text-primary-600'
@@ -702,21 +787,27 @@ export default function TrainingManagement() {
                     <input
                       type="text"
                       placeholder="Search verified employees..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 pr-4 py-2 border border-secondary-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
-                  <select className="input">
-                    <option>All Departments</option>
-                    <option value="HR">Human Resources</option>
-                    <option value="IT">Information Technology</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Sales">Sales</option>
+                  <select 
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="input"
+                  >
+                    <option value="all">All Departments</option>
+                    {getUniqueDepartments().map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="btn btn-outline btn-sm">
+                  <button 
+                    onClick={handleExport}
+                    className="btn btn-outline btn-sm"
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Export
                   </button>
@@ -737,7 +828,7 @@ export default function TrainingManagement() {
                     </tr>
                   </thead>
                   <tbody className="table-body">
-                    {employeeData.filter(emp => emp.verificationStatus === 'verified').map((employee, index) => (
+                    {getFilteredEmployees().map((employee, index) => (
                       <tr key={index} className="table-row">
                         <td className="table-cell">
                           <div className="flex items-center space-x-3">
@@ -803,21 +894,27 @@ export default function TrainingManagement() {
                     <input
                       type="text"
                       placeholder="Search not verified employees..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 pr-4 py-2 border border-secondary-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
-                  <select className="input">
-                    <option>All Departments</option>
-                    <option value="HR">Human Resources</option>
-                    <option value="IT">Information Technology</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Sales">Sales</option>
+                  <select 
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="input"
+                  >
+                    <option value="all">All Departments</option>
+                    {getUniqueDepartments().map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="btn btn-outline btn-sm">
+                  <button 
+                    onClick={handleExport}
+                    className="btn btn-outline btn-sm"
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Export
                   </button>
@@ -838,7 +935,7 @@ export default function TrainingManagement() {
                     </tr>
                   </thead>
                   <tbody className="table-body">
-                    {employeeData.filter(emp => emp.verificationStatus === 'not-verified').map((employee, index) => (
+                    {getFilteredEmployees().map((employee, index) => (
                       <tr key={index} className="table-row">
                         <td className="table-cell">
                           <div className="flex items-center space-x-3">
@@ -904,21 +1001,27 @@ export default function TrainingManagement() {
                     <input
                       type="text"
                       placeholder="Search rejected employees..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10 pr-4 py-2 border border-secondary-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
-                  <select className="input">
-                    <option>All Departments</option>
-                    <option value="HR">Human Resources</option>
-                    <option value="IT">Information Technology</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Operations">Operations</option>
-                    <option value="Sales">Sales</option>
+                  <select 
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="input"
+                  >
+                    <option value="all">All Departments</option>
+                    {getUniqueDepartments().map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="btn btn-outline btn-sm">
+                  <button 
+                    onClick={handleExport}
+                    className="btn btn-outline btn-sm"
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Export
                   </button>
@@ -939,7 +1042,7 @@ export default function TrainingManagement() {
                     </tr>
                   </thead>
                   <tbody className="table-body">
-                    {employeeData.filter(emp => emp.verificationStatus === 'rejected').map((employee, index) => (
+                    {getFilteredEmployees().map((employee, index) => (
                       <tr key={index} className="table-row">
                         <td className="table-cell">
                           <div className="flex items-center space-x-3">
@@ -1663,19 +1766,69 @@ export default function TrainingManagement() {
                         </div>
 
                         {/* Benefits */}
-                        <div className="bg-green-50 p-4 rounded-lg my-6">
-                          <h4 className="font-semibold mb-3 text-green-800">Benefits:</h4>
-                          <ul className="space-y-1 text-sm">
-                            {positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits.map((benefit, index) => (
-                              <li key={index}><strong>{benefit.split(':')[0]}:</strong> {benefit.split(':')[1]}</li>
-                            )) || [
-                              <li key="1"><strong>Hands-on Projects:</strong> Work on live software development projects</li>,
-                              <li key="2"><strong>Mentorship:</strong> Guidance from experienced developers</li>,
-                              <li key="3"><strong>Workshops:</strong> Access to training on latest development tools</li>,
-                              <li key="4"><strong>Networking:</strong> Build industry connections</li>,
-                              <li key="5"><strong>Career Growth:</strong> Opportunities for advancement</li>
-                            ]}
-                          </ul>
+                        <div className="bg-green-50 p-4 rounded-lg my-6 relative">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-semibold text-green-800">Benefits:</h4>
+                            <button
+                              onClick={handleEditBenefits}
+                              className="flex items-center gap-1 text-green-600 hover:text-green-700 text-sm"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                              Edit
+                            </button>
+                          </div>
+                          
+                          {isEditingBenefits ? (
+                            <div className="space-y-3">
+                              <textarea
+                                value={editingBenefits}
+                                onChange={(e) => setEditingBenefits(e.target.value)}
+                                className="w-full p-3 border border-green-300 rounded-lg text-sm"
+                                rows={6}
+                                placeholder="Enter benefits (one per line):&#10;• Hands-on Projects: Work on real projects&#10;• Mentorship: Guidance from experts&#10;• Workshops: Training sessions"
+                              />
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={handleSaveBenefits}
+                                  className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                                >
+                                  <Save className="h-3 w-3" />
+                                  Save
+                                </button>
+                                <button
+                                  onClick={handleCancelEditBenefits}
+                                  className="flex items-center gap-1 px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                                >
+                                  <X className="h-3 w-3" />
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <ul className="space-y-1 text-sm">
+                              {offerLetterForm.customBenefits ? (
+                                offerLetterForm.customBenefits.split('\n').filter(benefit => benefit.trim()).map((benefit, index) => {
+                                  const cleanBenefit = benefit.replace(/^[•\-\*]\s*/, '').trim()
+                                  const [title, description] = cleanBenefit.includes(':') ? cleanBenefit.split(':') : [cleanBenefit, '']
+                                  return (
+                                    <li key={index}>
+                                      <strong>{title}:</strong> {description}
+                                    </li>
+                                  )
+                                })
+                              ) : (
+                                positionContent[offerLetterForm.position as keyof typeof positionContent]?.benefits.map((benefit, index) => (
+                                  <li key={index}><strong>{benefit.split(':')[0]}:</strong> {benefit.split(':')[1]}</li>
+                                )) || [
+                                  <li key="1"><strong>Hands-on Projects:</strong> Work on live software development projects</li>,
+                                  <li key="2"><strong>Mentorship:</strong> Guidance from experienced developers</li>,
+                                  <li key="3"><strong>Workshops:</strong> Access to training on latest development tools</li>,
+                                  <li key="4"><strong>Networking:</strong> Build industry connections</li>,
+                                  <li key="5"><strong>Career Growth:</strong> Opportunities for advancement</li>
+                                ]
+                              )}
+                            </ul>
+                          )}
                         </div>
 
                         <p>
