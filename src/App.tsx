@@ -9,6 +9,7 @@ import PayrollManagement from './pages/PayrollManagement'
 import PerformanceManagement from './pages/PerformanceManagement'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
+import TrainingManagement from './pages/TrainingManagement'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/performance" element={<PerformanceManagement />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/training" element={<TrainingManagement />} />
         </Routes>
       </Layout>
     </Router>

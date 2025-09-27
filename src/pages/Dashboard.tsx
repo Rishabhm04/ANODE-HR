@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { 
   Users, 
   Clock, 
@@ -7,7 +7,9 @@ import {
   TrendingUp, 
   AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Home,
+  UserCheck
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
@@ -100,12 +102,137 @@ const recentActivities = [
 ]
 
 export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState('employee')
+  const [selectedPeriod, setSelectedPeriod] = useState('3 Days')
+
+  const periodFilters = [
+    { label: '3 Days', value: '3 Days', color: 'bg-black text-white' },
+    { label: '7 Days', value: '7 Days', color: 'bg-blue-600 text-white' },
+    { label: '15 Days', value: '15 Days', color: 'bg-red-600 text-white' },
+    { label: '1 Month', value: '1 Month', color: 'bg-orange-600 text-white' },
+    { label: '2 Months', value: '2 Months', color: 'bg-gray-600 text-white' }
+  ]
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-secondary-900">Dashboard</h1>
-        <p className="text-secondary-600">Welcome back! Here's what's happening with your HR operations.</p>
+      {/* Dashboard Tabs */}
+      <div className="flex space-x-4 mb-6">
+        <button
+          onClick={() => setActiveTab('employee')}
+          className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
+            activeTab === 'employee'
+              ? 'bg-primary-100 text-primary-700'
+              : 'text-secondary-600 hover:bg-secondary-100'
+          }`}
+        >
+          <Home className="mr-2 h-4 w-4" />
+          Employee Dashboard
+        </button>
+        <button
+          onClick={() => setActiveTab('management')}
+          className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
+            activeTab === 'management'
+              ? 'bg-primary-100 text-primary-700'
+              : 'text-secondary-600 hover:bg-secondary-100'
+          }`}
+        >
+          <UserCheck className="mr-2 h-4 w-4" />
+          Management Dashboard
+        </button>
+      </div>
+
+      {/* Date Range Filters */}
+      <div className="flex items-center space-x-4 mb-6">
+        <div className="flex space-x-2">
+          {periodFilters.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setSelectedPeriod(filter.value)}
+              className={`px-3 py-1 rounded text-sm font-medium ${
+                selectedPeriod === filter.value
+                  ? filter.color
+                  : 'bg-secondary-200 text-secondary-700 hover:bg-secondary-300'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            placeholder="6/1/2023"
+            className="px-3 py-1 border border-secondary-300 rounded text-sm"
+          />
+          <Calendar className="h-4 w-4 text-secondary-400" />
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            placeholder="6/9/2023"
+            className="px-3 py-1 border border-secondary-300 rounded text-sm"
+          />
+          <Calendar className="h-4 w-4 text-secondary-400" />
+        </div>
+        
+        <button className="px-4 py-1 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700">
+          Show
+        </button>
+      </div>
+
+      {/* Employee Profile Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-1">
+          <div className="card p-6">
+            <div className="text-center">
+              {/* Profile Picture */}
+              <div className="w-24 h-24 mx-auto mb-4 bg-secondary-200 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">IR</span>
+                </div>
+              </div>
+              
+              {/* Employee Name */}
+              <h3 className="text-lg font-semibold text-secondary-900 mb-4">Ibad ur Rahman</h3>
+              
+              {/* Photo Upload */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Choose Photo..."
+                    className="flex-1 px-3 py-2 border border-secondary-300 rounded text-sm"
+                    readOnly
+                  />
+                  <button className="px-3 py-2 bg-secondary-100 text-secondary-700 rounded text-sm hover:bg-secondary-200">
+                    Browse
+                  </button>
+                </div>
+                
+                <button className="w-full px-4 py-2 bg-teal-600 text-white rounded text-sm font-medium hover:bg-teal-700">
+                  Update
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Dashboard Content Area */}
+        <div className="lg:col-span-2">
+          <div className="card p-6 min-h-96">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-secondary-500">
+                <div className="w-16 h-16 mx-auto mb-4 bg-secondary-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="h-8 w-8 text-secondary-400" />
+                </div>
+                <p className="text-lg font-medium">Dashboard Content</p>
+                <p className="text-sm">Additional dashboard widgets and information will be displayed here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}
