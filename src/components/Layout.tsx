@@ -34,7 +34,7 @@ const navigation = [
   { name: 'HR Reports', href: '/reports', icon: BarChart3, hasSubmenu: true },
   { name: 'General Setup', href: '/settings', icon: Settings, hasSubmenu: true },
   { name: 'Training', href: '/training', icon: BookOpen, hasSubmenu: true },
-  { name: 'Payroll', href: '/payroll', icon: DollarSign, hasSubmenu: true },
+  { name: 'Salary', href: '/payroll', icon: DollarSign, hasSubmenu: true },
   { name: 'Shift Setup', href: '/shift', icon: Settings, hasSubmenu: true },
   { name: 'Employee Management', href: '/employees', icon: Users, hasSubmenu: true },
   { name: 'Management', href: '/management', icon: Folder, hasSubmenu: true },
