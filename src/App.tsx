@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import EmployeeManagement from './pages/EmployeeManagement'
+import ActiveEmployees from './pages/ActiveEmployees'
+import InactiveEmployees from './pages/InactiveEmployees'
 import AttendanceManagement from './pages/AttendanceManagement'
 import LeaveManagement from './pages/LeaveManagement'
 import PayrollManagement from './pages/PayrollManagement'
@@ -18,6 +20,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/employees" element={<EmployeeManagement />} />
+          <Route path="/employees/active" element={<ActiveEmployees />} />
+          <Route path="/employees/inactive" element={<InactiveEmployees />} />
           <Route path="/attendance" element={<AttendanceManagement />} />
           <Route path="/leave" element={<LeaveManagement />} />
           <Route path="/payroll" element={<PayrollManagement />} />

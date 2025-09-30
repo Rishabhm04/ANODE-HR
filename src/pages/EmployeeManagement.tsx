@@ -13,7 +13,9 @@ import {
   Phone,
   MapPin,
   Calendar,
-  DollarSign
+  DollarSign,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 
 interface Employee {
@@ -86,14 +88,17 @@ export default function EmployeeManagement() {
   const [selectedDesignation, setSelectedDesignation] = useState('All')
   const [showAddModal, setShowAddModal] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All')
 
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          employee.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesDepartment = selectedDepartment === 'All' || employee.department === selectedDepartment
     const matchesDesignation = selectedDesignation === 'All' || employee.designation === selectedDesignation
+    const matchesStatus = selectedStatusFilter === 'All' || employee.status === selectedStatusFilter.toLowerCase()
     
-    return matchesSearch && matchesDepartment && matchesDesignation
+    return matchesSearch && matchesDepartment && matchesDesignation && matchesStatus
   })
 
   const handleDeleteEmployee = (id: string) => {
@@ -162,6 +167,65 @@ export default function EmployeeManagement() {
             <Download className="mr-2 h-4 w-4" />
             Export
           </button>
+        </div>
+        
+        {/* Status Filter Dropdown */}
+        <div className="mt-4">
+          <div className="relative">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-between w-full md:w-64 px-4 py-2 text-sm border border-secondary-300 rounded-md bg-white hover:bg-secondary-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <span className="text-secondary-700">
+                {selectedStatusFilter === 'All' ? 'All Employees' : selectedStatusFilter}
+              </span>
+              {isDropdownOpen ? (
+                <ChevronUp className="h-4 w-4 text-secondary-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-secondary-400" />
+              )}
+            </button>
+            
+            {isDropdownOpen && (
+              <div className="absolute z-10 w-full md:w-64 mt-1 bg-white border border-secondary-300 rounded-md shadow-lg">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      setSelectedStatusFilter('All')
+                      setIsDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-secondary-50 ${
+                      selectedStatusFilter === 'All' ? 'bg-primary-50 text-primary-700' : 'text-secondary-700'
+                    }`}
+                  >
+                    All Employees
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedStatusFilter('Active')
+                      setIsDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-secondary-50 ${
+                      selectedStatusFilter === 'Active' ? 'bg-primary-50 text-primary-700' : 'text-secondary-700'
+                    }`}
+                  >
+                    Active Employees
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedStatusFilter('Inactive')
+                      setIsDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-secondary-50 ${
+                      selectedStatusFilter === 'Inactive' ? 'bg-primary-50 text-primary-700' : 'text-secondary-700'
+                    }`}
+                  >
+                    Inactive Employees
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
