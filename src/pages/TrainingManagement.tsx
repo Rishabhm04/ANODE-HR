@@ -683,11 +683,7 @@ export default function TrainingManagement() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Training Management</h1>
-          <p className="text-secondary-600">Manage training programs, enrollments, and track progress</p>
-        </div>
+      <div className="flex justify-end items-center">
         <div className="flex space-x-3">
           <button 
             onClick={() => setShowEnrollmentModal(true)}
