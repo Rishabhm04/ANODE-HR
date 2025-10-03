@@ -12,6 +12,7 @@ import PerformanceManagement from './pages/PerformanceManagement'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import TrainingManagement from './pages/TrainingManagement'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/training" element={<TrainingManagement />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </Layout>
     </Router>

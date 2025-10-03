@@ -142,42 +142,14 @@ export default function InactiveEmployees() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header (match other tabs) */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Inactive Employees</h1>
-          <p className="text-secondary-600">Employees currently off roll</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-secondary-700">Inactive</span>
-          <span className="inline-flex items-center justify-center h-6 px-2 rounded-full text-xs font-semibold bg-secondary-100 text-secondary-700">
-            {filtered.length}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" />
-            <input
-              type="text"
-              placeholder="Search name, code, mobile..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10"
-            />
-          </div>
-          <select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="input"
-          >
-            {departments.map(d => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-end items-center">
+        <div className="flex space-x-3">
+          <button className="btn btn-primary btn-md">
+            <Edit className="mr-2 h-4 w-4" />
+            Add Employee
+          </button>
           <button className="btn btn-outline btn-md" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" />
             Export CSV
@@ -185,11 +157,93 @@ export default function InactiveEmployees() {
         </div>
       </div>
 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Total Inactive</p>
+              <p className="text-2xl font-bold text-red-600">{filtered.length}</p>
+            </div>
+            <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
+              <span className="text-red-600 font-semibold text-sm">✗</span>
+            </div>
+          </div>
+        </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Departments</p>
+              <p className="text-2xl font-bold text-blue-600">{departments.length - 1}</p>
+            </div>
+            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-semibold text-sm">🏢</span>
+            </div>
+          </div>
+        </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Off Roll</p>
+              <p className="text-2xl font-bold text-purple-600">{filtered.filter(e => e.onRollStatus === 'OF ROLL').length}</p>
+            </div>
+            <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <span className="text-purple-600 font-semibold text-sm">👥</span>
+            </div>
+          </div>
+        </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Avg. Salary</p>
+              <p className="text-2xl font-bold text-orange-600">₹{Math.round(filtered.reduce((sum, e) => sum + e.payrollInformation, 0) / filtered.length || 0).toLocaleString()}</p>
+            </div>
+            <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
+              <span className="text-orange-600 font-semibold text-sm">₹</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters and Search */}
       <div className="card">
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-secondary-700">Inactive</span>
+              <span className="inline-flex items-center justify-center h-6 px-2 rounded-full text-xs font-semibold bg-secondary-100 text-secondary-700">
+                {filtered.length}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" />
+                <input
+                  type="text"
+                  placeholder="Search name, code, mobile..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="input pl-10"
+                />
+              </div>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="input"
+              >
+                {departments.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="table">
             <thead className="table-header">
               <tr className="table-row">
+                <th className="table-head">Employee Code</th>
                 <th className="table-head">Full Name</th>
                 <th className="table-head">PF/ESIC No.</th>
                 <th className="table-head">PAN No.</th>
@@ -201,7 +255,6 @@ export default function InactiveEmployees() {
                 <th className="table-head">Helmet</th>
                 <th className="table-head">Shoes</th>
                 <th className="table-head">On Roll / Off Roll Status</th>
-                <th className="table-head">Employee Code</th>
                 <th className="table-head">Date of Hire</th>
                 <th className="table-head">Completed Months</th>
                 <th className="table-head">Company</th>
@@ -221,6 +274,7 @@ export default function InactiveEmployees() {
             <tbody className="table-body">
               {filtered.map(emp => (
                 <tr key={emp.id} className="table-row">
+                  <td className="table-cell whitespace-nowrap">{emp.employeeCode}</td>
                   <td className="table-cell whitespace-nowrap">{emp.fullName}</td>
                   <td className="table-cell whitespace-nowrap">
                     <div className="flex items-center space-x-2">
@@ -252,7 +306,6 @@ export default function InactiveEmployees() {
                   <td className="table-cell whitespace-nowrap">{emp.helmet === 'ON' ? 'ON' : 'OFF'}</td>
                   <td className="table-cell whitespace-nowrap">{emp.shoes}</td>
                   <td className="table-cell whitespace-nowrap">{emp.onRollStatus}</td>
-                  <td className="table-cell whitespace-nowrap">{emp.employeeCode}</td>
                   <td className="table-cell whitespace-nowrap">{formatDate(emp.dateOfHire)}</td>
                   <td className="table-cell text-right">{emp.completedMonths}</td>
                   <td className="table-cell whitespace-nowrap">{emp.company}</td>

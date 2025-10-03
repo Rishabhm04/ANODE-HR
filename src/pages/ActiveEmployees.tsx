@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Search,
   Download,
@@ -263,47 +263,13 @@ export default function ActiveEmployees() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header (match other tabs) */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Active Employees</h1>
-          <p className="text-secondary-600">Employees currently on roll</p>
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-secondary-700">Active</span>
-          <span className="inline-flex items-center justify-center h-6 px-2 rounded-full text-xs font-semibold bg-secondary-100 text-secondary-700">
-            {filtered.length}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary-400" />
-            <input
-              type="text"
-              placeholder="Search name, code, mobile..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10"
-            />
-          </div>
-          <select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="input"
-          >
-            {departments.map(d => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-          <button
-            className="btn btn-outline btn-md"
-            onClick={() => setShowColumnFilters(v => !v)}
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            {showColumnFilters ? 'Hide Filters' : 'Filters'}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-end items-center">
+        <div className="flex space-x-3">
+          <button className="btn btn-primary btn-md">
+            <Edit className="mr-2 h-4 w-4" />
+            Add Employee
           </button>
           <button className="btn btn-outline btn-md" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" />
@@ -312,11 +278,121 @@ export default function ActiveEmployees() {
         </div>
       </div>
 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Total Active</p>
+              <p className="text-2xl font-bold text-green-600">{filtered.length}</p>
+            </div>
+            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+              <span className="text-green-600 font-semibold text-sm">✓</span>
+            </div>
+          </div>
+        </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Departments</p>
+              <p className="text-2xl font-bold text-blue-600">{departments.length - 1}</p>
+            </div>
+            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <span className="text-blue-600 font-semibold text-sm">🏢</span>
+            </div>
+          </div>
+        </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">On Roll</p>
+              <p className="text-2xl font-bold text-purple-600">{filtered.filter(e => e.onRollStatus === 'ON ROLL').length}</p>
+            </div>
+            <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <span className="text-purple-600 font-semibold text-sm">👥</span>
+            </div>
+          </div>
+        </div>
+        <div className="card p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-secondary-600">Avg. Salary</p>
+              <p className="text-2xl font-bold text-orange-600">₹{Math.round(filtered.reduce((sum, e) => sum + e.payrollInformation, 0) / filtered.length || 0).toLocaleString()}</p>
+            </div>
+            <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
+              <span className="text-orange-600 font-semibold text-sm">₹</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Employee Status Tabs */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6" aria-label="Employee Status">
+            <div className="flex items-center py-4 border-b-2 border-blue-500">
+              <span className="text-blue-600 font-semibold text-sm">Active Employees</span>
+              <span className="ml-3 inline-flex items-center justify-center h-6 w-6 rounded-full bg-green-100 text-green-800 text-xs font-bold">
+                3
+              </span>
+            </div>
+            <div className="flex items-center py-4 border-b-2 border-transparent hover:border-gray-300">
+              <span className="text-gray-500 font-medium text-sm">Inactive Employees</span>
+              <span className="ml-3 inline-flex items-center justify-center h-6 w-6 rounded-full bg-red-100 text-red-800 text-xs font-bold">
+                1
+              </span>
+            </div>
+            <div className="flex items-center py-4 border-b-2 border-transparent hover:border-gray-300">
+              <span className="text-gray-500 font-medium text-sm">Hold</span>
+              <span className="ml-3 inline-flex items-center justify-center h-6 w-6 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold">
+                1
+              </span>
+            </div>
+          </nav>
+        </div>
+        
+        {/* Search and Filters */}
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search name, code, mobile..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-80"
+                />
+              </div>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {departments.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <button
+                className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onClick={() => setShowColumnFilters(v => !v)}
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                {showColumnFilters ? 'Hide Filters' : 'Filters'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Data Table */}
       <div className="card">
         <div className="overflow-x-auto">
           <table className="table">
             <thead className="table-header">
               <tr className="table-row">
+                <th className="table-head">Employee Code</th>
                 <th className="table-head">Full Name</th>
                 <th className="table-head">PF/ESIC No.</th>
                 <th className="table-head">PAN No.</th>
@@ -328,7 +404,6 @@ export default function ActiveEmployees() {
                 <th className="table-head">Helmet</th>
                 <th className="table-head">Shoes</th>
                 <th className="table-head">On Roll / Off Roll Status</th>
-                <th className="table-head">Employee Code</th>
                 <th className="table-head">Date of Hire</th>
                 <th className="table-head">Completed Months</th>
                 <th className="table-head">Company</th>
@@ -346,6 +421,9 @@ export default function ActiveEmployees() {
               </tr>
               {showColumnFilters && (
                 <tr className="table-row">
+                  <th className="table-head">
+                    <input className="input" value={filters.employeeCode} onChange={(e) => setFilters({ ...filters, employeeCode: e.target.value })} placeholder="Filter" />
+                  </th>
                   <th className="table-head">
                     <input className="input" value={filters.fullName} onChange={(e) => setFilters({ ...filters, fullName: e.target.value })} placeholder="Filter" />
                   </th>
@@ -386,9 +464,6 @@ export default function ActiveEmployees() {
                       <option value="ON ROLL">ON ROLL</option>
                       <option value="OF ROLL">OF ROLL</option>
                     </select>
-                  </th>
-                  <th className="table-head">
-                    <input className="input" value={filters.employeeCode} onChange={(e) => setFilters({ ...filters, employeeCode: e.target.value })} placeholder="Filter" />
                   </th>
                   <th className="table-head">
                     <input className="input" value={filters.dateOfHire} onChange={(e) => setFilters({ ...filters, dateOfHire: e.target.value })} placeholder="MM/DD/YYYY" />
@@ -436,6 +511,7 @@ export default function ActiveEmployees() {
             <tbody className="table-body">
               {filtered.map(emp => (
                 <tr key={emp.id} className="table-row">
+                  <td className="table-cell whitespace-nowrap">{emp.employeeCode}</td>
                   <td className="table-cell whitespace-nowrap">{emp.fullName}</td>
                   <td className="table-cell whitespace-nowrap">
                     <div className="flex items-center space-x-2">
@@ -467,7 +543,6 @@ export default function ActiveEmployees() {
                   <td className="table-cell whitespace-nowrap">{emp.helmet === 'ON' ? 'ON' : 'OFF'}</td>
                   <td className="table-cell whitespace-nowrap">{emp.shoes}</td>
                   <td className="table-cell whitespace-nowrap">{emp.onRollStatus}</td>
-                  <td className="table-cell whitespace-nowrap">{emp.employeeCode}</td>
                   <td className="table-cell whitespace-nowrap">{formatDate(emp.dateOfHire)}</td>
                   <td className="table-cell text-right">{emp.completedMonths}</td>
                   <td className="table-cell whitespace-nowrap">{emp.company}</td>

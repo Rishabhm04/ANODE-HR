@@ -31,7 +31,6 @@ interface LayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, active: true },
   { name: 'Attendance', href: '/attendance', icon: Clock, hasSubmenu: true },
-  { name: 'Employees', href: '/employees', icon: Users, hasSubmenu: true },
   { name: 'Leave', href: '/leave', icon: Calendar, hasSubmenu: true },
   { name: 'Approval', href: '/approval', icon: CheckCircle, hasSubmenu: true },
   { name: 'HR Reports', href: '/reports', icon: BarChart3, hasSubmenu: true },
@@ -41,11 +40,12 @@ const navigation = [
   { name: 'Shift Setup', href: '/shift', icon: Settings, hasSubmenu: true },
   { name: 'Management', href: '/management', icon: Folder, hasSubmenu: true },
   { name: 'Performance', href: '/performance', icon: TrendingUp, hasSubmenu: true },
+  { name: 'Profile', href: '/profile', icon: User, hasSubmenu: true },
 ]
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [employeesDropdownOpen, setEmployeesDropdownOpen] = useState(false)
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const location = useLocation()
 
   return (
@@ -63,13 +63,13 @@ export default function Layout({ children }: LayoutProps) {
           <nav className="mt-4 px-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href
-              
-              // Special handling for Employees dropdown
-              if (item.name === 'Employees') {
+
+              // Special handling for Profile dropdown
+              if (item.name === 'Profile') {
                 return (
                   <div key={item.name} className="mb-1">
                     <button
-                      onClick={() => setEmployeesDropdownOpen(!employeesDropdownOpen)}
+                      onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                       className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
                           ? 'bg-primary-100 text-primary-700'
@@ -80,36 +80,25 @@ export default function Layout({ children }: LayoutProps) {
                         <item.icon className="mr-3 h-5 w-5" />
                         {item.name}
                       </div>
-                      {employeesDropdownOpen ? (
+                      {profileDropdownOpen ? (
                         <ChevronUp className="h-4 w-4" />
                       ) : (
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </button>
-                    
-                    {employeesDropdownOpen && (
+
+                    {profileDropdownOpen && (
                       <div className="ml-6 mt-1 space-y-1">
                         <Link
-                          to="/employees/active"
+                          to="/employees"
                           className={`block px-3 py-2 rounded-md text-sm ${
-                            location.pathname === '/employees/active'
+                            location.pathname === '/employees'
                               ? 'bg-primary-50 text-primary-700'
                               : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
                           }`}
                           onClick={() => setSidebarOpen(false)}
                         >
-                          Active Employees
-                        </Link>
-                        <Link
-                          to="/employees/inactive"
-                          className={`block px-3 py-2 rounded-md text-sm ${
-                            location.pathname === '/employees/inactive'
-                              ? 'bg-primary-50 text-primary-700'
-                              : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
-                          }`}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          Inactive Employees
+                          Employees
                         </Link>
                       </div>
                     )}
@@ -149,13 +138,13 @@ export default function Layout({ children }: LayoutProps) {
           <nav className="mt-4 flex-1 px-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href
-              
-              // Special handling for Employees dropdown
-              if (item.name === 'Employees') {
+
+              // Special handling for Profile dropdown
+              if (item.name === 'Profile') {
                 return (
                   <div key={item.name} className="mb-1">
                     <button
-                      onClick={() => setEmployeesDropdownOpen(!employeesDropdownOpen)}
+                      onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                       className={`flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
                           ? 'bg-primary-100 text-primary-700'
@@ -166,34 +155,24 @@ export default function Layout({ children }: LayoutProps) {
                         <item.icon className="mr-3 h-5 w-5" />
                         {item.name}
                       </div>
-                      {employeesDropdownOpen ? (
+                      {profileDropdownOpen ? (
                         <ChevronUp className="h-4 w-4" />
                       ) : (
                         <ChevronDown className="h-4 w-4" />
                       )}
                     </button>
-                    
-                    {employeesDropdownOpen && (
+
+                    {profileDropdownOpen && (
                       <div className="ml-6 mt-1 space-y-1">
                         <Link
-                          to="/employees/active"
+                          to="/employees"
                           className={`block px-3 py-2 rounded-md text-sm ${
-                            location.pathname === '/employees/active'
+                            location.pathname === '/employees'
                               ? 'bg-primary-50 text-primary-700'
                               : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
                           }`}
                         >
-                          Active Employees
-                        </Link>
-                        <Link
-                          to="/employees/inactive"
-                          className={`block px-3 py-2 rounded-md text-sm ${
-                            location.pathname === '/employees/inactive'
-                              ? 'bg-primary-50 text-primary-700'
-                              : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
-                          }`}
-                        >
-                          Inactive Employees
+                          Employees
                         </Link>
                       </div>
                     )}
@@ -238,6 +217,12 @@ export default function Layout({ children }: LayoutProps) {
             <div className="ml-4 lg:ml-0">
               {location.pathname === '/training' && (
                 <h1 className="text-xl font-bold text-secondary-900">Training Management</h1>
+              )}
+              {location.pathname === '/employees' && (
+                <h1 className="text-xl font-bold text-secondary-900">Employee Management</h1>
+              )}
+              {location.pathname === '/profile' && (
+                <h1 className="text-xl font-bold text-secondary-900">Profile</h1>
               )}
             </div>
           </div>
