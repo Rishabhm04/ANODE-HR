@@ -272,6 +272,12 @@ export default function Layout({ children }: LayoutProps) {
               {location.pathname === '/department' && (
                 <h1 className="text-xl font-bold text-secondary-900">Department Management</h1>
               )}
+              {location.pathname === '/management' && (
+                <h1 className="text-xl font-bold text-secondary-900">Management</h1>
+              )}
+              {location.pathname === '/shift' && (
+                <h1 className="text-xl font-bold text-secondary-900">Shift Setup</h1>
+              )}
             </div>
           </div>
           

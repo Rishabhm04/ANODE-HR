@@ -12,9 +12,12 @@ import PerformanceManagement from './pages/PerformanceManagement'
 import Reports from './pages/Reports'
 import Settings from './pages/Settings'
 import TrainingManagement from './pages/TrainingManagement'
+import Approval from './pages/Approval'
 import Profile from './pages/Profile'
 import AddEmployee from './pages/AddEmployee'
 import DepartmentManagement from './pages/DepartmentManagement'
+import ShiftSetup from './pages/ShiftSetup'
+import Management from './pages/Management'
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/training" element={<TrainingManagement />} />
+          <Route path="/approval" element={<Approval />} />
+          <Route path="/shift" element={<ShiftSetup />} />
+          <Route path="/management" element={<Management />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/add-employee" element={<AddEmployee />} />
           <Route path="/department" element={<DepartmentManagement />} />

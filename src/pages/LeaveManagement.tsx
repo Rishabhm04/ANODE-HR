@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { 
   Calendar, 
   Plus, 
-  Filter, 
   Download, 
   CheckCircle, 
   XCircle, 
@@ -11,8 +10,9 @@ import {
   AlertCircle,
   Eye,
   Edit,
-  Trash2
+  
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 interface LeaveRequest {
   id: string
@@ -117,14 +117,42 @@ const mockLeaveTypes: LeaveType[] = [
 
 export default function LeaveManagement() {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(mockLeaveRequests)
-  const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>(mockLeaveTypes)
+  const [leaveTypes] = useState<LeaveType[]>(mockLeaveTypes)
   const [selectedStatus, setSelectedStatus] = useState('All')
   const [selectedLeaveType, setSelectedLeaveType] = useState('All')
   const [showAddModal, setShowAddModal] = useState(false)
-  const [showLeaveTypeModal, setShowLeaveTypeModal] = useState(false)
+  
   const [showViewModal, setShowViewModal] = useState(false)
   const [editingRequest, setEditingRequest] = useState<LeaveRequest | null>(null)
   const [viewingRequest, setViewingRequest] = useState<LeaveRequest | null>(null)
+  
+  // Listen to approval queue updates and reflect status changes
+  React.useEffect(() => {
+    const syncFromQueue = () => {
+      try {
+        const raw = localStorage.getItem('approvalQueue')
+        const queue = raw ? JSON.parse(raw) : []
+        if (!Array.isArray(queue)) return
+        setLeaveRequests(prev => prev.map(req => {
+          const match = queue.find((i: any) => i.entityType === 'leave' && i.entityId === req.id)
+          if (!match) return req
+          if (match.status === 'approved' && req.status !== 'approved') {
+            return { ...req, status: 'approved', approvedBy: match.decisionBy || 'Current User', approvedDate: match.decisionAt || new Date().toISOString().split('T')[0] }
+          }
+          if (match.status === 'rejected' && req.status !== 'rejected') {
+            return { ...req, status: 'rejected', approvedBy: match.decisionBy || 'Current User', approvedDate: match.decisionAt || new Date().toISOString().split('T')[0] }
+          }
+          return req
+        }))
+      } catch {}
+    }
+    syncFromQueue()
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'approvalQueue') syncFromQueue()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
   
   // Form state for editing/adding leave requests
   const [formData, setFormData] = useState({
@@ -168,6 +196,13 @@ export default function LeaveManagement() {
         ? { ...req, status: 'approved' as const, approvedBy: 'Current User', approvedDate: new Date().toISOString().split('T')[0] }
         : req
     ))
+    // sync approval queue if present
+    try {
+      const raw = localStorage.getItem('approvalQueue')
+      const queue = raw ? JSON.parse(raw) : []
+      const updated = Array.isArray(queue) ? queue.map((i: any) => i.entityType === 'leave' && i.entityId === id ? { ...i, status: 'approved', decisionBy: 'Current User', decisionAt: new Date().toISOString().split('T')[0] } : i) : []
+      localStorage.setItem('approvalQueue', JSON.stringify(updated))
+    } catch {}
   }
 
   const handleRejectRequest = (id: string) => {
@@ -176,6 +211,13 @@ export default function LeaveManagement() {
         ? { ...req, status: 'rejected' as const, approvedBy: 'Current User', approvedDate: new Date().toISOString().split('T')[0] }
         : req
     ))
+    // sync approval queue if present
+    try {
+      const raw = localStorage.getItem('approvalQueue')
+      const queue = raw ? JSON.parse(raw) : []
+      const updated = Array.isArray(queue) ? queue.map((i: any) => i.entityType === 'leave' && i.entityId === id ? { ...i, status: 'rejected', decisionBy: 'Current User', decisionAt: new Date().toISOString().split('T')[0] } : i) : []
+      localStorage.setItem('approvalQueue', JSON.stringify(updated))
+    } catch {}
   }
 
   const handleViewRequest = (request: LeaveRequest) => {
@@ -240,6 +282,26 @@ export default function LeaveManagement() {
         balance: 15
       }
       setLeaveRequests(prev => [...prev, newRequest])
+      // If leave type requires approval, push to approval queue
+      const type = leaveTypes.find(t => t.name === newRequest.leaveType)
+      if (type?.requiresApproval) {
+        try {
+          const raw = localStorage.getItem('approvalQueue')
+          const queue = raw ? JSON.parse(raw) : []
+          const item = {
+            id: `leave-${newRequest.id}`,
+            entityId: newRequest.id,
+            entityType: 'leave',
+            title: `${newRequest.employeeName} - ${newRequest.leaveType} (${newRequest.days} days)`,
+            details: `${newRequest.startDate} to ${newRequest.endDate}: ${newRequest.reason}`,
+            status: 'pending',
+            submittedBy: 'Current User',
+            submittedAt: new Date().toISOString(),
+          }
+          const next = Array.isArray(queue) ? [item, ...queue] : [item]
+          localStorage.setItem('approvalQueue', JSON.stringify(next))
+        } catch {}
+      }
     }
     
     // Reset form and close modal
@@ -330,13 +392,11 @@ export default function LeaveManagement() {
           <p className="text-secondary-600">Manage employee leave requests, balances, and approval workflows</p>
         </div>
         <div className="flex space-x-3">
-          <button 
-            onClick={() => setShowLeaveTypeModal(true)}
-            className="btn btn-outline btn-md"
-          >
-            <Calendar className="mr-2 h-4 w-4" />
-            Leave Types
-          </button>
+          <Link to="/approval" className="btn btn-outline btn-md">
+            <CheckCircle className="mr-2 h-4 w-4" />
+            Go to Approvals
+          </Link>
+          
           <button 
             onClick={() => setShowAddModal(true)}
             className="btn btn-primary btn-md"
@@ -510,6 +570,34 @@ export default function LeaveManagement() {
                             title="Reject"
                           >
                             <XCircle className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              try {
+                                const raw = localStorage.getItem('approvalQueue')
+                                const queue = raw ? JSON.parse(raw) : []
+                                // Avoid duplicates
+                                const exists = Array.isArray(queue) && queue.some((i: any) => i.entityType === 'leave' && i.entityId === request.id)
+                                if (!exists) {
+                                  const item = {
+                                    id: `leave-${request.id}`,
+                                    entityId: request.id,
+                                    entityType: 'leave',
+                                    title: `${request.employeeName} - ${request.leaveType} (${request.days} days)`,
+                                    details: `${request.startDate} to ${request.endDate}: ${request.reason}`,
+                                    status: 'pending',
+                                    submittedBy: 'Current User',
+                                    submittedAt: new Date().toISOString(),
+                                  }
+                                  const next = Array.isArray(queue) ? [item, ...queue] : [item]
+                                  localStorage.setItem('approvalQueue', JSON.stringify(next))
+                                }
+                              } catch {}
+                            }}
+                            className="p-1 text-yellow-600 hover:text-yellow-700"
+                            title="Send to Approval"
+                          >
+                            <Clock className="h-4 w-4" />
                           </button>
                         </>
                       )}
