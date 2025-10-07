@@ -100,6 +100,28 @@ export default function Layout({ children }: LayoutProps) {
                         >
                           Employees
                         </Link>
+                        <Link
+                          to="/add-employee"
+                          className={`block px-3 py-2 rounded-md text-sm ${
+                            location.pathname === '/add-employee'
+                              ? 'bg-primary-50 text-primary-700'
+                              : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          Add Employee
+                        </Link>
+                        <Link
+                          to="/department"
+                          className={`block px-3 py-2 rounded-md text-sm ${
+                            location.pathname === '/department'
+                              ? 'bg-primary-50 text-primary-700'
+                              : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          Department
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -174,6 +196,26 @@ export default function Layout({ children }: LayoutProps) {
                         >
                           Employees
                         </Link>
+                        <Link
+                          to="/add-employee"
+                          className={`block px-3 py-2 rounded-md text-sm ${
+                            location.pathname === '/add-employee'
+                              ? 'bg-primary-50 text-primary-700'
+                              : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
+                          }`}
+                        >
+                          Add Employee
+                        </Link>
+                        <Link
+                          to="/department"
+                          className={`block px-3 py-2 rounded-md text-sm ${
+                            location.pathname === '/department'
+                              ? 'bg-primary-50 text-primary-700'
+                              : 'text-secondary-600 hover:bg-secondary-100 hover:text-secondary-900'
+                          }`}
+                        >
+                          Department
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -223,6 +265,12 @@ export default function Layout({ children }: LayoutProps) {
               )}
               {location.pathname === '/profile' && (
                 <h1 className="text-xl font-bold text-secondary-900">Profile</h1>
+              )}
+              {location.pathname === '/add-employee' && (
+                <h1 className="text-xl font-bold text-secondary-900">Add Employee</h1>
+              )}
+              {location.pathname === '/department' && (
+                <h1 className="text-xl font-bold text-secondary-900">Department Management</h1>
               )}
             </div>
           </div>
